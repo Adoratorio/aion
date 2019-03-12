@@ -4,7 +4,7 @@ interface QueueObject {
   isHeavy : boolean;
 };
 
-class RAFEngine {
+class Aion {
   private lastRAFId : number = 0;
   private frameId : number = 0;
   private frameHandler : FrameRequestCallback;
@@ -73,4 +73,4 @@ class RAFEngine {
   }
 }
 
-export default RAFEngine;
+export default Aion;

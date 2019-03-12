@@ -1,12 +1,12 @@
-# raf-engine
+# Aion
 A js RAF engine
 
 # Usage
 ```javascript
-import RAFEngine from 'raf-engine';
+import Aion from '@adoratorio/aion';
 
 // Create the engine
-const engine = new RAFEngine();
+const engine = new Aion();
 const fn = () => {
   // Awesome stuff executed each frame
 };
