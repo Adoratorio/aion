@@ -53,7 +53,7 @@ class Aion {
     }
   }
 
-  add(handler : Function, id : string, isHeavy : boolean = false) {
+  add(handler : Function, id? : string, isHeavy : boolean = false) {
     if (typeof handler !== 'function') throw new Error("Expected function as handler");
     if (typeof id === 'undefined') id = `h_${++this.uidCounter}`;
     this.queue.push({
