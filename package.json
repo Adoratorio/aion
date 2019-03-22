@@ -1,8 +1,11 @@
 {
   "name": "@adoratorio/aion",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A js RAF engine",
   "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist/**/*"],
   "scripts": {
     "build": "rm -rf ./dist && mkdir ./dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -21,9 +24,9 @@
   ],
   "author": "Adoratorio <contact@adoratorio.studio>",
   "contributors": [
+    "Andrea Gottardi <andrea@adoratorio.com>",
     "Daniele Borra <daniele.borra.93@gmail.com>",
-    "Tommaso Algozzino <tommaso@adoratorio.com>",
-    "Andrea Gottardi <andrea@adoratorio.com>"
+    "Tommaso Algozzino <tommaso@adoratorio.com>"
   ],
   "license": "MIT",
   "bugs": {
