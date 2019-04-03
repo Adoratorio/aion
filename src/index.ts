@@ -4,19 +4,28 @@ interface QueueObject {
   isHeavy : boolean;
 };
 
+interface AionOptions {
+  autostop : boolean,
+};
+
 class Aion {
+  private options : AionOptions;
   private lastRAFId : number = 0;
   private frameId : number = 0;
   private frameHandler : FrameRequestCallback;
   private lastNow : number = 0;
   private uidCounter : number = 0;
   public stopped : boolean = true;
-  public queue : Array<QueueObject> = []; 
+  public queue : Array<QueueObject> = [];
 
-  constructor() {
+  constructor(options : Partial<AionOptions>) {
     if (typeof window === 'undefined' || typeof window.requestAnimationFrame === 'undefined') {
       throw new Error("You are not using this package in browser environment");
     }
+
+    const defaults : AionOptions = { autostop: true };
+    this.options = { ...defaults, ...options };
+
     this.frameHandler = () => this.frame();
   }
 
@@ -69,7 +78,7 @@ class Aion {
     const index = this.queue.findIndex((object : QueueObject) => object.id === id);
     if (index < 0) return;
     else this.queue.splice(index, 1);
-    if (this.queue.length <= 0) this.stop();
+    if (this.queue.length <= 0 && this.options.autostop) this.stop();
   }
 }
 
