@@ -6,7 +6,9 @@ A js RAF engine
 import Aion from '@adoratorio/aion';
 
 // Create the engine
-const engine = new Aion();
+const engine = new Aion({
+  autostop: true // Set if the engine stop himself after last funciton removal
+});
 const fn = () => {
   // Awesome stuff executed each frame
 };
@@ -20,7 +22,7 @@ engine.add(fn, 'heavyId', true);
 // Time to start the engine
 engine.start();
 
-// Remove a function by id, the engine will auto-stop when the last function is removed
+// Remove a function by id, if autostop is true the engine will auto-stop when the last function is removed
 engine.remove(id);
 
 // Or stop it manually
