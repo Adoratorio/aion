@@ -12,7 +12,6 @@ class Aion {
   private options : AionOptions;
   private lastRAFId : number = 0;
   private frameId : number = 0;
-  private frameHandler : FrameRequestCallback;
   private lastNow : number = 0;
   private uidCounter : number = 0;
   public stopped : boolean = true;
@@ -25,14 +24,12 @@ class Aion {
 
     const defaults : AionOptions = { autostop: true };
     this.options = { ...defaults, ...options };
-
-    this.frameHandler = () => this.frame();
   }
 
   start() {
     this.stopped = false;
     this.lastNow = performance.now();
-    this.lastRAFId = window.requestAnimationFrame(this.frameHandler);
+    this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
   }
 
   stop(force = false) {
@@ -42,11 +39,10 @@ class Aion {
     this.stopped = true;
   }
 
-  frame() {
-    // Get the distance between this execution and the last
-    const now = performance.now();
+  frame(now : DOMHighResTimeStamp) {
     const delta = now - this.lastNow;
     this.lastNow = now;
+
     // Process the que for this frame
     this.queue.forEach((fn) => {
       if (!fn.isHeavy) {
@@ -56,9 +52,9 @@ class Aion {
       }
     });
     this.frameId += 1;
-    // Continus the loop if not already stopped
+    // Continue the loop if it has not already been interrupted
     if (!this.stopped) {
-      this.lastRAFId = window.requestAnimationFrame(this.frameHandler);
+      this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
     }
   }
 
