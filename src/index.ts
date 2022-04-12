@@ -27,6 +27,7 @@ class Aion {
   }
 
   start() {
+    if (!this.stopped) return;
     this.stopped = false;
     this.lastNow = performance.now();
     this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
