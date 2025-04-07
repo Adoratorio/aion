@@ -63,7 +63,8 @@ class Aion {
     if (typeof handler !== 'function') throw new Error("Expected function as handler");
     if (typeof id === 'undefined') id = `h_${++this.uidCounter}`;
     if (this.queue.find((object : QueueObject) => object.id === id)) {
-      throw new Error(`Dupicated entry ${id} in quee use another id`);
+      console.warn(`Dupicated entry ${id} in quee use another id. Skipping registration.`);
+      return;
     }
     this.queue.push({
       id,
