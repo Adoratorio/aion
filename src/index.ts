@@ -1,72 +1,75 @@
 interface AionQueueObject {
-  id : string;
-  handler : Function;
-  step : number;
-};
+  readonly id: string;
+  readonly handler: (delta: number, frameId: number) => void;
+  readonly step: number;
+}
 
 interface AionOptions {
-  autostop : boolean,
-};
+  readonly autostop: boolean;
+}
 
 class Aion {
-  private options : AionOptions;
-  private lastRAFId : number = 0;
-  private frameId : number = 0;
-  private lastNow : number = 0;
-  private uidCounter : number = 0;
-  public stopped : boolean = true;
-  public queue : Array<AionQueueObject> = [];
+  private readonly options: AionOptions;
+  private lastRAFId: number = 0;
+  private frameId: number = 0;
+  private lastNow: number = 0;
+  private uidCounter: number = 0;
+  private readonly queueIds: Set<string> = new Set();
+  public stopped: boolean = true;
+  public queue: readonly AionQueueObject[] = [];
 
-  constructor(options : Partial<AionOptions>) {
+  constructor(options: Partial<AionOptions>) {
     if (typeof window === 'undefined' || typeof window.requestAnimationFrame === 'undefined') {
       throw new Error("You are not using this package in browser environment");
     }
 
-    const defaults : AionOptions = { autostop: true };
+    const defaults: AionOptions = { autostop: true };
     this.options = { ...defaults, ...options };
   }
 
-  start() : void {
+  start(): void {
     if (!this.stopped) return;
     this.stopped = false;
     this.lastNow = performance.now();
-    this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
+    this.lastRAFId = window.requestAnimationFrame((now) => this.frame(now));
   }
 
-  stop(force = false) : void {
+  stop(force = false): void {
     if (force) {
       window.cancelAnimationFrame(this.lastRAFId);
     }
     this.stopped = true;
   }
 
-  frame(now : DOMHighResTimeStamp) : void {
+  frame(now: DOMHighResTimeStamp): void {
     const delta = now - this.lastNow;
     this.lastNow = now;
 
-    // Process the que for this frame
-    this.queue.forEach((fn) => {
-      if (fn.step === 1) {
-        fn.handler(delta, this.frameId);
-      } else if (this.frameId % fn.step === 0) {
+    // Cache length and use for loop for better performance
+    const len = this.queue.length;
+    for (let i = 0; i < len; i++) {
+      const fn = this.queue[i];
+      if (fn.step === 1 || this.frameId % fn.step === 0) {
         fn.handler(delta, this.frameId);
       }
-    });
+    }
+    
     this.frameId += 1;
-    // Continue the loop if it has not already been interrupted
     if (!this.stopped) {
-      this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
+      this.lastRAFId = window.requestAnimationFrame((now) => this.frame(now));
     }
   }
 
-  add(handler : Function, id? : string, step : number = 1) : string | null {
+  add(handler: (delta: number, frameId: number) => void, id?: string, step: number = 1): string | null {
     if (typeof handler !== 'function') throw new Error("Expected function as handler");
     if (typeof id === 'undefined') id = `h_${++this.uidCounter}`;
-    if (this.queue.find((object : AionQueueObject) => object.id === id)) {
-      console.warn(`Dupicated entry ${id} in quee use another id. Skipping registration.`);
+    if (this.queueIds.has(id)) {
+      console.warn(`Duplicated entry ${id} in queue use another id. Skipping registration.`);
       return null;
     }
-    this.queue.push({
+    
+    this.queueIds.add(id);
+    (this.queue as AionQueueObject[]).push({
       id,
       handler,
       step,
@@ -74,16 +77,18 @@ class Aion {
     return id;
   }
 
-  remove(id : string) : void {
+  remove(id: string): void {
     if (typeof id === 'undefined') throw new Error("Expected id");
-    const index = this.queue.findIndex((object : AionQueueObject) => object.id === id);
-    if (index < 0) return;
-    else this.queue.splice(index, 1);
-    if (this.queue.length <= 0 && this.options.autostop) this.stop();
+    const index = this.queue.findIndex(object => object.id === id);
+    if (index >= 0) {
+      (this.queue as AionQueueObject[]).splice(index, 1);
+      this.queueIds.delete(id);
+      if (this.queue.length === 0 && this.options.autostop) this.stop();
+    }
   }
 
-  has(id : string) : boolean {
-    return this.queue.findIndex((object : AionQueueObject) => object.id === id) ? true : false;
+  has(id: string): boolean {
+    return this.queueIds.has(id);
   }
 }
 
