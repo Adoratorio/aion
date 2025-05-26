@@ -49,6 +49,7 @@ class Aion {
     const len = this.queue.length;
     for (let i = 0; i < len; i++) {
       const fn = this.queue[i];
+      if (!fn || typeof fn.handler !== 'function') continue;
       if (fn.step === 1 || this.frameId % fn.step === 0) {
         fn.handler(delta, this.frameId);
       }
@@ -62,6 +63,8 @@ class Aion {
 
   add(handler: (delta: number, frameId: number) => void, id?: string, step: number = 1): string | null {
     if (typeof handler !== 'function') throw new Error("Expected function as handler");
+    if (typeof step !== 'number') throw new Error("Expected number as step");
+    if (step < 1) throw new Error("Step must be greater than 0");
     if (typeof id === 'undefined') id = `h_${++this.uidCounter}`;
     if (this.queueIds.has(id)) {
       console.warn(`Duplicated entry ${id} in queue use another id. Skipping registration.`);
@@ -69,10 +72,11 @@ class Aion {
     }
     
     this.queueIds.add(id);
-    (this.queue as AionQueueObject[]).push({
+    const queue = this.queue as AionQueueObject[];
+    queue.push({
       id,
       handler,
-      step,
+      step: Math.floor(step),
     });
     return id;
   }
@@ -81,7 +85,8 @@ class Aion {
     if (typeof id === 'undefined') throw new Error("Expected id");
     const index = this.queue.findIndex(object => object.id === id);
     if (index >= 0) {
-      (this.queue as AionQueueObject[]).splice(index, 1);
+      const queue = this.queue as AionQueueObject[];
+      queue.splice(index, 1);
       this.queueIds.delete(id);
       if (this.queue.length === 0 && this.options.autostop) this.stop();
     }
