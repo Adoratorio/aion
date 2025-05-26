@@ -16,8 +16,8 @@ const fn = () => {
 const id = engine.add(fn);
 // Add a function by manually setting the id
 engine.add(fn, 'myId');
-// Add a function and make it executed at half the speed (jump odd frames)
-engine.add(fn, 'heavyId', true);
+// Add a function and make it executed only every 2 frames, step is customizable
+engine.add(fn, 'heavyId', 2);
 
 // Time to start the engine
 engine.start();
@@ -30,6 +30,9 @@ engine.stop();
 // By passing true to force you can also cancel the last queed frame just to be sure
 // it won't be executed, otherwise the already requested frames will be executed
 engine.stop(true);
+
+// Can check for an id using .has
+engine.has('myId'); // true
 
 // You can also check the running state by testing the .stopped property
 if (!engine.stopped) {

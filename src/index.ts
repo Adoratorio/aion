@@ -1,7 +1,7 @@
-interface QueueObject {
+interface AionQueueObject {
   id : string;
   handler : Function;
-  isHeavy : boolean;
+  step : number;
 };
 
 interface AionOptions {
@@ -15,7 +15,7 @@ class Aion {
   private lastNow : number = 0;
   private uidCounter : number = 0;
   public stopped : boolean = true;
-  public queue : Array<QueueObject> = [];
+  public queue : Array<AionQueueObject> = [];
 
   constructor(options : Partial<AionOptions>) {
     if (typeof window === 'undefined' || typeof window.requestAnimationFrame === 'undefined') {
@@ -26,29 +26,29 @@ class Aion {
     this.options = { ...defaults, ...options };
   }
 
-  start() {
+  start() : void {
     if (!this.stopped) return;
     this.stopped = false;
     this.lastNow = performance.now();
     this.lastRAFId = window.requestAnimationFrame(this.frame.bind(this));
   }
 
-  stop(force = false) {
+  stop(force = false) : void {
     if (force) {
       window.cancelAnimationFrame(this.lastRAFId);
     }
     this.stopped = true;
   }
 
-  frame(now : DOMHighResTimeStamp) {
+  frame(now : DOMHighResTimeStamp) : void {
     const delta = now - this.lastNow;
     this.lastNow = now;
 
     // Process the que for this frame
     this.queue.forEach((fn) => {
-      if (!fn.isHeavy) {
+      if (fn.step === 1) {
         fn.handler(delta, this.frameId);
-      } else if (this.frameId % 2 === 0) {
+      } else if (this.frameId % fn.step === 0) {
         fn.handler(delta, this.frameId);
       }
     });
@@ -59,27 +59,31 @@ class Aion {
     }
   }
 
-  add(handler : Function, id? : string, isHeavy : boolean = false) {
+  add(handler : Function, id? : string, step : number = 1) : string | null {
     if (typeof handler !== 'function') throw new Error("Expected function as handler");
     if (typeof id === 'undefined') id = `h_${++this.uidCounter}`;
-    if (this.queue.find((object : QueueObject) => object.id === id)) {
+    if (this.queue.find((object : AionQueueObject) => object.id === id)) {
       console.warn(`Dupicated entry ${id} in quee use another id. Skipping registration.`);
-      return;
+      return null;
     }
     this.queue.push({
       id,
       handler,
-      isHeavy,
+      step,
     });
     return id;
   }
 
-  remove(id : string) {
+  remove(id : string) : void {
     if (typeof id === 'undefined') throw new Error("Expected id");
-    const index = this.queue.findIndex((object : QueueObject) => object.id === id);
+    const index = this.queue.findIndex((object : AionQueueObject) => object.id === id);
     if (index < 0) return;
     else this.queue.splice(index, 1);
     if (this.queue.length <= 0 && this.options.autostop) this.stop();
+  }
+
+  has(id : string) : boolean {
+    return this.queue.findIndex((object : AionQueueObject) => object.id === id) ? true : false;
   }
 }
 
