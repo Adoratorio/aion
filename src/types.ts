@@ -8,4 +8,5 @@ export interface AionQueueObject {
 
 export interface AionOptions {
   readonly autostop: boolean;
+  readonly debug: boolean;
 }

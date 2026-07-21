@@ -13,11 +13,17 @@ class Aion {
 
   constructor(options: Partial<AionOptions> = {}) {
     if (typeof window === 'undefined' || typeof window.requestAnimationFrame === 'undefined') {
-      throw new Error('You are not using this package in browser environment');
+      throw new Error('[Aion] You are not using this package in a browser environment');
     }
 
-    const defaults: AionOptions = { autostop: true };
+    const defaults: AionOptions = { autostop: true, debug: false };
     this.#options = { ...defaults, ...options };
+  }
+
+  #debugWarn(message: string): void {
+    if (this.#options.debug) {
+      console.warn(`[Aion] ${message}`);
+    }
   }
 
   public start(): void {
@@ -58,19 +64,19 @@ class Aion {
 
   public add(handler: AionHandler, id?: string, step = 1): string | null {
     if (typeof handler !== 'function') {
-      throw new Error('Expected function as handler');
+      throw new Error('[Aion] Expected function as handler');
     }
     if (typeof step !== 'number' || !Number.isFinite(step)) {
-      throw new Error('Expected finite number as step');
+      throw new Error('[Aion] Expected finite number as step');
     }
     if (step < 1) {
-      throw new Error('Step must be greater than 0');
+      throw new Error('[Aion] Step must be greater than 0');
     }
     if (typeof id === 'undefined') {
       id = `h_${++this.#uidCounter}`;
     }
     if (this.#queueIds.has(id)) {
-      console.warn(`Duplicated entry ${id} in queue use another id. Skipping registration.`);
+      this.#debugWarn(`Duplicated entry ${id} in queue, use another id. Skipping registration.`);
       return null;
     }
 
@@ -86,7 +92,7 @@ class Aion {
 
   public remove(id: string): void {
     if (typeof id === 'undefined') {
-      throw new Error('Expected id');
+      throw new Error('[Aion] Expected id');
     }
     const index = this.queue.findIndex((object) => object.id === id);
     if (index !== -1) {
