@@ -1,5 +1,20 @@
-dist
 node_modules
-.vscode
+dist
+build
+coverage
+
+# Editor / OS
 .DS_Store
-**/.DS_Store
+.idea
+.vscode
+*.swp
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Lockfiles from other package managers
+package-lock.json
+yarn.lock
