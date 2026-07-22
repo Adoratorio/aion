@@ -1,41 +1,68 @@
 # Aion
-A js RAF engine
 
-# Usage
-```javascript
+A lightweight `requestAnimationFrame` (rAF) engine with a shared frame queue.
+
+## Installation
+
+```bash
+npm install @adoratorio/aion
+```
+
+## Usage
+
+This package is ESM-only. Import it as a module:
+
+```typescript
 import Aion from '@adoratorio/aion';
 
-// Create the engine
-const engine = new Aion({
-  autostop: true // Set if the engine stop himself after last funciton removal
-});
-const fn = () => {
-  // Awesome stuff executed each frame
-};
-// Add a function to the quee and take the id
-const id = engine.add(fn);
-// Add a function by manually setting the id
-engine.add(fn, 'myId');
-// Add a function and make it executed only every 2 frames, step is customizable
-engine.add(fn, 'heavyId', 2);
+const engine = new Aion();
+engine.start();
+```
 
-// Time to start the engine
+## Configuration
+
+Aion accepts an `options` object with the following properties:
+
+| Parameter | Type | Default | Description |
+| :-------- | :--: | :-----: | :---------- |
+| `autostop` | `boolean` | `true` | Automatically stops the engine when the frame queue is empty, preventing idle processing. |
+| `debug` | `boolean` | `false` | Enable namespaced `console.warn` diagnostics for recoverable issues (contract violations always throw). |
+
+## Methods
+
+### Queue Management
+
+Aion acts as a centralized engine where you can add or remove multiple callbacks that will all run synced on the same requestAnimationFrame loop.
+
+```typescript
+// Add a handler to the frame queue
+// You can provide a custom ID, otherwise one is generated.
+// Returns the ID (or null if the ID is a duplicate).
+const myId = engine.add((delta, frameId) => {
+  console.log(`Time since last frame: ${delta}ms`);
+}, 'my-custom-id');
+
+// Remove a handler from the queue by its ID
+engine.remove('my-custom-id');
+
+// Check whether a handler ID is currently registered
+const exists = engine.has('my-custom-id');
+```
+
+### Engine Control
+
+```typescript
+// Start the rAF loop manually
 engine.start();
 
-// Remove a function by id, if autostop is true the engine will auto-stop when the last function is removed
-engine.remove(id);
-
-// Or stop it manually
+// Force stop the rAF loop
 engine.stop();
-// By passing true to force you can also cancel the last queed frame just to be sure
-// it won't be executed, otherwise the already requested frames will be executed
-engine.stop(true);
-
-// Can check for an id using .has
-engine.has('myId'); // true
-
-// You can also check the running state by testing the .stopped property
-if (!engine.stopped) {
-  engine.stop();
-}
 ```
+
+## Browser Support & SSR
+
+Aion is designed for browser environments and relies on `window.requestAnimationFrame` and `performance.now()`. Instantiating it outside of a browser environment without proper polyfills will throw an error.
+
+## TypeScript Support
+
+Aion is entirely written in TypeScript and exports specific types like `AionOptions`, `AionQueueObject`, and `AionHandler`.
