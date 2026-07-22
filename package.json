@@ -1,6 +1,6 @@
 {
   "name": "@adoratorio/aion",
-  "version": "0.4.3",
+  "version": "1.0.0",
   "description": "A js RAF engine",
   "type": "module",
   "main": "./dist/index.js",
