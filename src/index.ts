@@ -35,7 +35,9 @@ class Aion {
     this.stopped = false;
     this.#lastNow = performance.now();
     window.cancelAnimationFrame(this.#lastRAFId);
-    this.#lastRAFId = window.requestAnimationFrame(this.#boundFrame);
+    if (!this.#inFrame) {
+      this.#lastRAFId = window.requestAnimationFrame(this.#boundFrame);
+    }
   }
 
   public stop(force = false): void {
@@ -46,30 +48,36 @@ class Aion {
   }
 
   public frame(now: DOMHighResTimeStamp): void {
-    // A frame scheduled before `stop()` must not run the handlers once more
-    if (this.stopped) {
+    if (this.stopped || this.#inFrame) {
       return;
     }
-
+    // Also supports manually advancing a scheduled engine without a second loop.
+    window.cancelAnimationFrame(this.#lastRAFId);
     const delta = now - this.#lastNow;
     this.#lastNow = now;
-
-    // Handlers added during the frame run from the next frame on; handlers removed
-    // during the frame are detached after the loop so no entry is skipped.
     this.#inFrame = true;
-    const len = this.queue.length;
-    for (let i = 0; i < len; i++) {
-      const fn = this.queue[i];
-      if (fn && (fn.step === 1 || this.#frameId % fn.step === 0)) {
-        fn.handler(delta, this.#frameId);
+    try {
+      const len = this.queue.length;
+      for (let i = 0; i < len; i++) {
+        const fn = this.queue[i];
+        if (fn && (fn.step === 1 || this.#frameId % fn.step === 0)) {
+          fn.handler(delta, this.#frameId);
+        }
       }
-    }
-    this.#inFrame = false;
-    this.#flushRemovals();
-
-    this.#frameId += 1;
-    if (!this.stopped) {
-      this.#lastRAFId = window.requestAnimationFrame(this.#boundFrame);
+    } catch (error) {
+      // Preserve the original error and leave the engine explicitly restartable.
+      this.stop(true);
+      throw error;
+    } finally {
+      this.#inFrame = false;
+      this.#flushRemovals();
+      this.#frameId += 1;
+      if (this.queue.length === 0 && this.#options.autostop) {
+        this.stop(true);
+      }
+      if (!this.stopped) {
+        this.#lastRAFId = window.requestAnimationFrame(this.#boundFrame);
+      }
     }
   }
 
@@ -84,7 +92,9 @@ class Aion {
       throw new Error('[Aion] Step must be greater than 0');
     }
     if (typeof id === 'undefined') {
-      id = `h_${++this.#uidCounter}`;
+      do {
+        id = `h_${++this.#uidCounter}`;
+      } while (this.#queueIds.has(id));
     }
     if (this.#queueIds.has(id)) {
       this.#debugWarn(`Duplicated entry ${id} in queue, use another id. Skipping registration.`);
