@@ -136,3 +136,58 @@ describe('Aion', () => {
     window.requestAnimationFrame = original;
   });
 });
+
+describe('Aion lifecycle regressions', () => {
+  it('propagates callback errors and can restart after removing the failing callback', () => {
+    const engine = new Aion();
+    const error = new Error('consumer failed');
+    const healthy = vi.fn();
+    engine.add(() => {
+      throw error;
+    }, 'bad');
+    engine.add(healthy, 'good');
+    engine.start();
+    expect(() => tick()).toThrow(error);
+    expect(engine.stopped).toBe(true);
+    engine.remove('bad');
+    expect(engine.queue.map((entry) => entry.id)).toEqual(['good']);
+    engine.start();
+    tick();
+    expect(healthy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps one scheduled frame after stop/start from a callback', () => {
+    const engine = new Aion();
+    const handler = vi.fn(() => {
+      engine.stop();
+      engine.start();
+    });
+    engine.add(handler);
+    engine.start();
+    tick();
+    expect(scheduled).toHaveLength(1);
+    tick();
+    expect(handler).toHaveBeenCalledTimes(2);
+    expect(scheduled).toHaveLength(1);
+  });
+
+  it('stops an empty engine after its first frame, allowing synchronous registration', () => {
+    const empty = new Aion();
+    empty.start();
+    tick();
+    expect(empty.stopped).toBe(true);
+    expect(scheduled).toHaveLength(0);
+    const engine = new Aion();
+    engine.start();
+    const handler = vi.fn();
+    engine.add(handler);
+    tick();
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not collide with user-supplied generated-looking ids', () => {
+    const engine = new Aion();
+    engine.add(() => {}, 'h_1');
+    expect(engine.add(() => {})).toBe('h_2');
+  });
+});
