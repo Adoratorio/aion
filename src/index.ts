@@ -127,6 +127,10 @@ class Aion {
     this.#detach(id);
   }
 
+  public has(id: string): boolean {
+    return this.#queueIds.has(id);
+  }
+
   #detach(id: string): void {
     const index = this.queue.findIndex((object) => object.id === id);
     if (index === -1) {
@@ -147,10 +151,6 @@ class Aion {
       this.#detach(id);
     }
     this.#pendingRemovals.length = 0;
-  }
-
-  public has(id: string): boolean {
-    return this.#queueIds.has(id);
   }
 }
 
