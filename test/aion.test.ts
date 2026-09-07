@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Aion from '../src/index.ts';
 
 // Deterministic rAF: frames run only when `tick()` is called
-let scheduled: Array<{ id: number; cb: FrameRequestCallback }> = [];
+let scheduled: { id: number; cb: FrameRequestCallback }[] = [];
 let rafId = 0;
 let now = 0;
 
