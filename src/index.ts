@@ -22,12 +22,6 @@ class Aion {
     this.#options = { ...defaults, ...options };
   }
 
-  #debugWarn(message: string): void {
-    if (this.#options.debug) {
-      console.warn(`[Aion] ${message}`);
-    }
-  }
-
   public start(): void {
     if (!this.stopped) {
       return;
@@ -97,7 +91,7 @@ class Aion {
       } while (this.#queueIds.has(id));
     }
     if (this.#queueIds.has(id)) {
-      this.#debugWarn(`Duplicated entry ${id} in queue, use another id. Skipping registration.`);
+      this.#debugWarn(`Duplicate entry ${id} in queue, use another id. Skipping registration.`);
       return null;
     }
 
@@ -151,6 +145,12 @@ class Aion {
       this.#detach(id);
     }
     this.#pendingRemovals.length = 0;
+  }
+
+  #debugWarn(message: string): void {
+    if (this.#options.debug) {
+      console.warn(`[Aion] ${message}`);
+    }
   }
 }
 
