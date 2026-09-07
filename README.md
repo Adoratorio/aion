@@ -42,7 +42,9 @@ const myId = engine.add((delta, frameId) => {
   console.log(`Time since last frame: ${delta}ms`);
 }, 'my-custom-id');
 
-// Remove a handler from the queue by its ID
+// Remove a handler from the queue by its ID.
+// Removing from inside a handler is safe: the entry is detached once the
+// current frame has finished, so no other handler is skipped.
 engine.remove('my-custom-id');
 
 // Check whether a handler ID is currently registered
@@ -55,8 +57,10 @@ const exists = engine.has('my-custom-id');
 // Start the rAF loop manually
 engine.start();
 
-// Force stop the rAF loop
+// Stop the rAF loop. The already scheduled frame is skipped; pass `true`
+// to also cancel it right away.
 engine.stop();
+engine.stop(true);
 ```
 
 ## Browser Support & SSR

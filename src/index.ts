@@ -6,7 +6,9 @@ class Aion {
   #frameId = 0;
   #lastNow = 0;
   #uidCounter = 0;
+  #inFrame = false;
   readonly #queueIds = new Set<string>();
+  readonly #pendingRemovals: string[] = [];
   public stopped = true;
   public queue: readonly AionQueueObject[] = [];
   readonly #boundFrame = (now: DOMHighResTimeStamp): void => this.frame(now);
@@ -44,10 +46,17 @@ class Aion {
   }
 
   public frame(now: DOMHighResTimeStamp): void {
+    // A frame scheduled before `stop()` must not run the handlers once more
+    if (this.stopped) {
+      return;
+    }
+
     const delta = now - this.#lastNow;
     this.#lastNow = now;
 
-    // Cache length and use for loop for better performance
+    // Handlers added during the frame run from the next frame on; handlers removed
+    // during the frame are detached after the loop so no entry is skipped.
+    this.#inFrame = true;
     const len = this.queue.length;
     for (let i = 0; i < len; i++) {
       const fn = this.queue[i];
@@ -55,6 +64,8 @@ class Aion {
         fn.handler(delta, this.#frameId);
       }
     }
+    this.#inFrame = false;
+    this.#flushRemovals();
 
     this.#frameId += 1;
     if (!this.stopped) {
@@ -94,15 +105,38 @@ class Aion {
     if (typeof id === 'undefined') {
       throw new Error('[Aion] Expected id');
     }
-    const index = this.queue.findIndex((object) => object.id === id);
-    if (index !== -1) {
-      const queue = this.queue as AionQueueObject[];
-      queue.splice(index, 1);
-      this.#queueIds.delete(id);
-      if (this.queue.length === 0 && this.#options.autostop) {
-        this.stop();
-      }
+    if (!this.#queueIds.has(id)) {
+      return;
     }
+    // Mark as gone right away so `has()` and re-`add()` behave consistently
+    this.#queueIds.delete(id);
+    if (this.#inFrame) {
+      this.#pendingRemovals.push(id);
+      return;
+    }
+    this.#detach(id);
+  }
+
+  #detach(id: string): void {
+    const index = this.queue.findIndex((object) => object.id === id);
+    if (index === -1) {
+      return;
+    }
+    const queue = this.queue as AionQueueObject[];
+    queue.splice(index, 1);
+    if (this.queue.length === 0 && this.#options.autostop) {
+      this.stop();
+    }
+  }
+
+  #flushRemovals(): void {
+    if (this.#pendingRemovals.length === 0) {
+      return;
+    }
+    for (const id of this.#pendingRemovals) {
+      this.#detach(id);
+    }
+    this.#pendingRemovals.length = 0;
   }
 
   public has(id: string): boolean {
