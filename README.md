@@ -70,3 +70,18 @@ Aion is designed for browser environments and relies on `window.requestAnimation
 ## TypeScript Support
 
 Aion is entirely written in TypeScript and exports specific types like `AionOptions`, `AionQueueObject`, and `AionHandler`.
+
+## Maintenance and compatibility
+
+See [MAINTAINERS.md](MAINTAINERS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
+[CHANGELOG.md](CHANGELOG.md). Historical contributor credits are retained.
+The CI runtime is Node 24; DOM instances are client-only. Imports are SSR-safe.
+The runtime expects native ES2023 support; TypeScript does not provide browser
+polyfills. DOM functionality uses requestAnimationFrame, Pointer/Touch Events
+and observers where applicable. Test the target browser matrix before release.
+
+A callback exception is propagated unchanged and stops the engine. Pending
+removals are cleaned up; remove or repair the failing callback, then call
+`start()` explicitly. Other callbacks are not run after the exception in that
+frame. With autostop enabled, an empty queue stops at the end of the frame;
+`start(); add(handler)` in the same synchronous turn remains supported.
