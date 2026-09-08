@@ -6,6 +6,8 @@ This file records changes from 1.0.0 onward. See [GitHub releases](https://githu
 
 ### Documentation
 
+- Document handler frequency, callback arguments, engine state and manual frame advancement.
+
 - Refine contributor guidance and release notes; consolidate maintainer contacts in the README.
 
 ## [1.0.1](https://github.com/Adoratorio/aion/releases/tag/v1.0.1) — 2026-09-08
