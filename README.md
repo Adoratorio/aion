@@ -16,6 +16,9 @@ This package is ESM-only. Import it as a module:
 import Aion from '@adoratorio/aion';
 
 const engine = new Aion();
+engine.add((delta, frameId) => {
+  console.log(delta, frameId);
+});
 engine.start();
 ```
 
@@ -62,6 +65,20 @@ engine.start();
 engine.stop();
 engine.stop(true);
 ```
+
+### Handler frequency and engine state
+
+`add(handler, id?, step = 1)` accepts an optional third argument. `step: 1` runs on every frame; `step: 2` runs when the engine's frame counter is divisible by two. The value must be finite and at least 1; fractions are rounded down. `delta` is elapsed milliseconds since the previous engine frame, even when a handler skips frames. `frameId` is the engine's zero-based frame counter.
+
+```typescript
+engine.add((delta, frameId) => {
+  console.log('Every second engine frame', delta, frameId);
+}, 'occasional-update', 2);
+```
+
+`add()` returns the assigned ID, or `null` for a duplicate ID. It does not start the engine. `remove(id)` and `start()`/`stop(force = false)` return `void`; `has(id)` returns a boolean. Calling `start()` on a running engine has no effect.
+
+`stopped` initially equals `true`. `queue` exposes the registered `{ id, handler, step }` entries as a readonly array; use the engine methods to manage it. The public `frame(now)` method advances a running engine using a timestamp on the `performance.now()` clock and schedules the next frame. It does nothing while stopped or already inside a frame; normal consumers should let `start()` drive it.
 
 ## Browser Support & SSR
 
