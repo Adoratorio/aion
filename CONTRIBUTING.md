@@ -1,28 +1,52 @@
-# Contributing
+# Contributing to Aion
 
-Use the pnpm version in package.json and Node 24 (the CI runtime).
-Run `pnpm install --frozen-lockfile`, `pnpm check`, `pnpm test` and `pnpm build`.
-`pnpm format` applies the shared style. Typechecking includes the tests.
+Bug reports, documentation improvements and focused pull requests are welcome.
+For a new feature or a public API change, open an issue first to discuss the use case.
 
-Keep classes, public exports (including dist subpaths), callback order and
-existing defaults compatible. Reproduce a bug with a focused test before
-fixing it. Destroy test instances and restore mocks after every test.
-Changes to animation feel, input sensitivity or continuous plugin callbacks
-need explicit opt-in or a planned breaking release.
+## Report an issue
 
-Validate browser behavior with real layout, nested containers, keyboard input,
-reduced motion, dynamic content and repeated mount/destroy cycles. Simulated
-DOM tests cannot establish browser rendering or touch-device compatibility.
-Keep import-time code safe in SSR; construct DOM plugins in a client-only hook.
+Use [GitHub Issues](https://github.com/Adoratorio/aion/issues). Include the package version,
+your runtime or browser, a minimal reproduction, and the expected and actual behavior.
 
-Run `pnpm test:package` after building to install the actual archive in a
-fresh temporary consumer and verify its exports and TypeScript declarations.
-For unpublished dependencies, pass their built repository directories as
-arguments: `pnpm test:package ../aion ../hermes` (only those actually needed).
-The script packs dependencies; it never publishes them.
+## Local development
 
-Record user-visible changes under Unreleased in CHANGELOG.md. Require review
-from a different current maintainer. Agree on versions, tags, push and npm
-publication separately; no local check publishes or pushes anything.
-For dependent packages, publish and verify their required dependency versions
-first. Prefer npm trusted publishing when the release workflow is configured.
+Clone your fork and use Node.js 24 with the pnpm version declared in `package.json`.
+From the repository root, run:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm check
+pnpm test
+pnpm build
+pnpm test:package
+```
+
+`pnpm check` runs typechecking, linting and formatting checks. Use `pnpm format`
+to apply formatting. `pnpm test:package` installs the built archive in a temporary
+consumer project and checks imports, declarations and source maps.
+
+## Scope and validation
+
+Keep changes focused. Add a regression test for bug fixes and update examples when
+the public API changes. Preserve public exports, including supported `dist` subpaths.
+
+Cover frame scheduling, callback order, callback errors, handler IDs and stop/start transitions. Preserve the shared frame queue and existing timing defaults. Cancel scheduled frames and restore mocks after each test. Verify animation timing in a browser when changing the scheduling loop.
+
+## Pull requests
+
+Describe the problem, the resulting behavior and how you verified it. Include any
+compatibility impact and add user-facing changes to `Unreleased` in `CHANGELOG.md`.
+A current maintainer other than the author should review each change; maintainers
+are listed in the [README](README.md#maintainers).
+
+## Releases
+
+Maintainers coordinate the version and release owner. Before publishing, run the
+checks above, confirm dependency versions are available, and move the relevant
+`Unreleased` notes into a dated version entry.
+
+Release notes should explain the user impact, identify breaking changes and give
+concrete upgrade steps. Keep titles and headings plain, without emoji. Use the
+changelog as the source for release notes and link to the relevant comparison.
+
+CI validates changes; publishing is a separate maintainer operation.

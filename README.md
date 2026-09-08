@@ -1,6 +1,6 @@
 # Aion
 
-A lightweight `requestAnimationFrame` (rAF) engine with a shared frame queue.
+A shared animation frame engine for browser interfaces.
 
 ## Installation
 
@@ -71,17 +71,33 @@ Aion is designed for browser environments and relies on `window.requestAnimation
 
 Aion is entirely written in TypeScript and exports specific types like `AionOptions`, `AionQueueObject`, and `AionHandler`.
 
-## Maintenance and compatibility
+## Compatibility
 
-See [MAINTAINERS.md](MAINTAINERS.md), [CONTRIBUTING.md](CONTRIBUTING.md) and
-[CHANGELOG.md](CHANGELOG.md). Historical contributor credits are retained.
-The CI runtime is Node 24; DOM instances are client-only. Imports are SSR-safe.
-The runtime expects native ES2023 support; TypeScript does not provide browser
-polyfills. DOM functionality uses requestAnimationFrame, Pointer/Touch Events
-and observers where applicable. Test the target browser matrix before release.
+Imports are safe during server-side rendering. Create instances on the client after mounting. The package targets ES2023 and does not include polyfills.
+
+## Callback errors and scheduling
 
 A callback exception is propagated unchanged and stops the engine. Pending
 removals are cleaned up; remove or repair the failing callback, then call
 `start()` explicitly. Other callbacks are not run after the exception in that
 frame. With autostop enabled, an empty queue stops at the end of the frame;
 `start(); add(handler)` in the same synchronous turn remains supported.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, checks and pull requests.
+Version history is documented in the [changelog](CHANGELOG.md) and [GitHub releases](https://github.com/Adoratorio/aion/releases).
+
+## Maintainers
+
+Maintained by [Adoratorio](https://github.com/Adoratorio).
+
+- [Andrea Gottardi](https://github.com/AndreaGottardi)
+- [Daniele Borra](https://github.com/borradaniele)
+- [Andrea Biason](https://github.com/biazo5)
+
+Contributor credits are preserved in [package.json](package.json) and the Git history.
+
+## License
+
+[MIT](LICENSE).
