@@ -20,9 +20,7 @@
   "files": [
     "dist/**/*",
     "src/**/*",
-    "MAINTAINERS.md",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md"
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "rm -rf ./dist && tsc",
