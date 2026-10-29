@@ -60,7 +60,7 @@
   "homepage": "https://github.com/Adoratorio/aion#readme",
   "packageManager": "pnpm@11.22.0",
   "devDependencies": {
-    "happy-dom": "^20.14.0",
+    "happy-dom": "^21.0.4",
     "oxfmt": "^0.59.0",
     "oxlint": "^1.74.0",
     "typescript": "^7.0.2",
